@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>room.ai - Multi-LLM Debate Engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏛️ room.ai</h1>
+            <p class="subtitle">Multi-LLM Debate & Collaboration Engine</p>
+            <p class="description">Ask any question and watch two powerful AIs debate to find the best answer</p>
+        </header>
+
+        <div class="input-section">
+            <textarea 
+                id="promptInput" 
+                placeholder="Ask your question... (e.g., 'What is quantum computing?' or 'Should AI be regulated?')"
+                rows="3"
+            ></textarea>
+            <button id="startDebate" onclick="startDebate()">
+                🚀 Start Debate
+            </button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>AI models are debating... This takes 15-30 seconds</p>
+            <p class="loading-phase" id="loadingPhase">Starting debate...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>💬 Debate Transcript</h2>
+            
+            <div class="phase-card">
+                <h3>📝 Phase 1: Independent Solutions</h3>
+                <div class="model-response">
+                    <h4>🤖 Llama 3.3 (70B)</h4>
+                    <p id="responseA"></p>
+                </div>
+                <div class="model-response">
+                    <h4>🤖 Mistral 7B</h4>
+                    <p id="responseB"></p>
+                </div>
+            </div>
+
+            <div class="phase-card">
+                <h3>🔍 Phase 2: Cross-Examination</h3>
+                <div class="exchange">
+                    <p><strong>Mistral asks:</strong> <span id="questionFromB"></span></p>
+                    <p><strong>Llama defends:</strong> <span id="defenseA"></span></p>
+                </div>
+                <div class="exchange">
+                    <p><strong>Llama asks:</strong> <span id="questionFromA"></span></p>
+                    <p><strong>Mistral defends:</strong> <span id="defenseB"></span></p>
+                </div>
+            </div>
+
+            <div class="phase-card">
+                <h3>⚔️ Phase 3: Mutual Critique</h3>
+                <div class="critique">
+                    <p><strong>Llama's critique of Mistral:</strong> <span id="critiqueA"></span></p>
+                </div>
+                <div class="critique">
+                    <p><strong>Mistral's critique of Llama:</strong> <span id="critiqueB"></span></p>
+                </div>
+            </div>
+
+            <div class="phase-card final-answer">
+                <h3>🎯 Phase 4: Final Synthesized Answer</h3>
+                <p id="finalAnswer"></p>
+            </div>
+
+            <div class="metadata">
+                <p>⏱️ Duration: <span id="duration"></span></p>
+                <p>🤖 Models: <span id="models"></span></p>
+            </div>
+
+            <button onclick="askAnother()" class="secondary-btn">Ask Another Question</button>
+        </div>
+
+        <footer>
+            <p>Built with ❤️ using OpenRouter API • Deployed on Render</p>
+            <p><a href="https://room-ai-debate-engine.onrender.com" target="_blank">API Endpoint</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
