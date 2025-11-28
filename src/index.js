@@ -2,11 +2,13 @@
 import express from 'express';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Initialize OpenRouter client (uses OpenAI SDK)
 const openrouter = new OpenAI({
