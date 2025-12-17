@@ -68,7 +68,8 @@ async function executeCode(code, language = 'python', stdin = '') {
             success: false,
             output: error.message,
             error: error.message,
-            language: language
+            language: language,
+            exitCode: 1
         };
     }
 }
@@ -94,4 +95,33 @@ async function executeAllCodeBlocks(text, stdin = '') {
     return results;
 }
 
-export { executeCode, extractCodeBlocks, executeAllCodeBlocks };
+// Generate test cases for code
+function generateTestCases(problemDescription) {
+    // Common edge cases for different problem types
+    const edgeCases = {
+        array: [
+            '[]',
+            '[1]',
+            '[1,1,1,1]',
+            '[5,4,3,2,1]',
+            '[-1,-5,0,10]'
+        ],
+        number: [
+            '0',
+            '1',
+            '-1',
+            '1000000',
+            '-1000000'
+        ],
+        string: [
+            '""',
+            '"a"',
+            '"aaa"',
+            '"Hello World"'
+        ]
+    };
+    
+    return edgeCases;
+}
+
+export { executeCode, extractCodeBlocks, executeAllCodeBlocks, generateTestCases };
