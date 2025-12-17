@@ -3,6 +3,7 @@ import express from 'express';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { executeAllCodeBlocks } from './codeExecutor.js';
 
 dotenv.config();
 
@@ -76,6 +77,53 @@ class DebateEngine {
       modelA: { name: this.modelA, response: responseA },
       modelB: { name: this.modelB, response: responseB }
     });
+
+    // CODE EXECUTION: Check if responses contain code
+    console.log('🔍 Checking for code blocks...');
+    const codeResultsA = await executeAllCodeBlocks(responseA);
+    const codeResultsB = await executeAllCodeBlocks(responseB);
+    
+    if (codeResultsA || codeResultsB) {
+      console.log('⚡ Executing code...');
+      
+      // Add execution results to transcript
+      this.transcript.push({
+        phase: 'Code Execution',
+        modelA: codeResultsA ? {
+          executed: true,
+          results: codeResultsA
+        } : { executed: false },
+        modelB: codeResultsB ? {
+          executed: true,
+          results: codeResultsB
+        } : { executed: false }
+      });
+      
+      // Create execution summary for models to see
+      let executionSummary = '\n\n--- CODE EXECUTION RESULTS ---\n';
+      
+      if (codeResultsA) {
+        executionSummary += `\nModel A's code execution:\n`;
+        codeResultsA.forEach((result, idx) => {
+          executionSummary += `Code block ${idx + 1} (${result.language}):\n`;
+          executionSummary += `Output: ${result.output}\n`;
+          executionSummary += `Exit code: ${result.exitCode}\n`;
+        });
+      }
+      
+      if (codeResultsB) {
+        executionSummary += `\nModel B's code execution:\n`;
+        codeResultsB.forEach((result, idx) => {
+          executionSummary += `Code block ${idx + 1} (${result.language}):\n`;
+          executionSummary += `Output: ${result.output}\n`;
+          executionSummary += `Exit code: ${result.exitCode}\n`;
+        });
+      }
+      
+      // Update responses to include execution results for next phases
+      responseA += executionSummary;
+      responseB += executionSummary;
+    }
 
     // PHASE 2: Cross-Examination
     console.log('🔍 Phase 2: Cross-examination...');
