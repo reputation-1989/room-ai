@@ -3,62 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debate AI - Chat</title>
+    <title>Room AI - Multi-Agent Debate</title>
     <link rel="stylesheet" href="chat.css">
+    
+    <!-- Markdown, LaTeX, and Code Highlighting Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
 </head>
 <body>
     <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo">
-                <span class="logo-icon">🤖</span>
-                <span class="logo-text">Debate AI</span>
-            </div>
+            <h2>💬 Chat History</h2>
+            <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-content">
             <button class="new-chat-btn" onclick="newChat()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+                <span class="btn-icon">➕</span>
+                <span>New Chat</span>
             </button>
-        </div>
-        
-        <div class="chat-history" id="chatHistory">
-            <!-- Chat history items will appear here -->
-        </div>
-        
-        <div class="sidebar-footer">
-            <button class="home-btn" onclick="window.location.href='index.html'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                <span>Home</span>
-            </button>
-            <button class="theme-toggle-btn" onclick="toggleTheme()">
-                <span id="themeIcon">🌙</span>
-                <span>Dark Mode</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- Main Chat Area -->
-    <main class="chat-main">
-        <!-- Mobile Header -->
-        <header class="mobile-header">
-            <button class="menu-btn" onclick="toggleSidebar()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <div class="mobile-logo">
-                <span>🤖</span>
-                <span>Debate AI</span>
+            <div class="chat-history" id="chatHistory">
+                <div style="padding: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+                    No chat history yet
+                </div>
             </div>
-            <button class="mobile-theme-btn" onclick="toggleTheme()">
-                <span id="mobileThemeIcon">🌙</span>
-            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="logo-text">Room AI</span>
+                </a>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button class="theme-toggle" onclick="openSettingsModal()" aria-label="Settings" title="Settings (Ctrl+,)">
+                    ⚙️
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <!-- Messages Container -->
@@ -66,54 +63,64 @@
             <!-- Welcome Screen -->
             <div class="welcome-screen" id="welcomeScreen">
                 <div class="welcome-content">
-                    <h1>Welcome to Debate AI</h1>
-                    <p>Multiple AI models debate to find the best answer to your questions</p>
-                    
-                    <div class="example-grid">
-                        <button class="example-card" onclick="useExample('Explain quantum computing in simple terms')">
-                            <span class="example-icon">🔬</span>
-                            <span class="example-text">Explain quantum computing</span>
+                    <h1 class="welcome-title">Welcome to Room AI</h1>
+                    <p class="welcome-subtitle">Where AI models debate to find the best answers</p>
+                    <div class="feature-pills">
+                        <span class="pill">🧠 Multi-Agent Debate</span>
+                        <span class="pill">🔍 Cross-Examination</span>
+                        <span class="pill">✨ Synthesized Answers</span>
+                    </div>
+                    <div style="margin: 2rem 0; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="action-btn" onclick="showKeyboardShortcuts()" title="Ctrl+/">
+                            <span class="btn-icon">⌨️</span>
+                            <span class="btn-text">Shortcuts</span>
                         </button>
-                        <button class="example-card" onclick="useExample('Write a binary search algorithm in Python')">
-                            <span class="example-icon">💻</span>
-                            <span class="example-text">Binary search algorithm</span>
+                        <button class="action-btn" onclick="openSearchModal()" title="Ctrl+K">
+                            <span class="btn-icon">🔍</span>
+                            <span class="btn-text">Search</span>
                         </button>
-                        <button class="example-card" onclick="useExample('What are the benefits of meditation?')">
-                            <span class="example-icon">🧘</span>
-                            <span class="example-text">Benefits of meditation</span>
+                        <button class="action-btn" onclick="openExportModal()" title="Ctrl+E">
+                            <span class="btn-icon">📥</span>
+                            <span class="btn-text">Export</span>
                         </button>
-                        <button class="example-card" onclick="useExample('Explain the theory of relativity')">
-                            <span class="example-icon">⚡</span>
-                            <span class="example-text">Theory of relativity</span>
-                        </button>
+                    </div>
+                    <div class="example-section">
+                        <h3 class="example-title">Try asking:</h3>
+                        <div class="example-grid">
+                            <!-- Examples will be inserted here by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Messages will appear here -->
+            <!-- Messages -->
             <div class="messages" id="messages"></div>
         </div>
 
         <!-- Input Area -->
-        <div class="input-area">
-            <div class="input-container">
+        <div class="input-container">
+            <div class="input-wrapper">
                 <textarea 
                     id="messageInput" 
-                    placeholder="Ask me anything..." 
+                    placeholder="Ask me anything... (Ctrl+Enter to send)" 
                     rows="1"
-                    onkeydown="handleKeyPress(event)"
+                    onkeypress="handleKeyPress(event)"
                     oninput="autoResize(this)"
                 ></textarea>
                 <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
+                    <span class="send-icon">➤</span>
                 </button>
             </div>
-            <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+            <div class="input-footer">
+                <span class="input-hint">Press Ctrl+/ for shortcuts • Ctrl+K to search • Ctrl+E to export</span>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Floating Action Button (Mobile) -->
+    <button class="fab" onclick="showKeyboardShortcuts()" title="Quick Actions">
+        ⚡
+    </button>
 
     <script src="chat.js"></script>
 </body>

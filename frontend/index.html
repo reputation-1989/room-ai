@@ -3,211 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Debate Engine - Multi-Agent Reasoning System</title>
-    <meta name="description" content="Advanced AI reasoning through multi-agent debates. Get better answers powered by collaborative AI models.">
+    <title>Room AI - Multi-Agent Debate Platform</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="animated-bg"></div>
-    <div class="grid-overlay"></div>
-    <div class="floating-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-        <div class="shape shape-4"></div>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">🤖</div>
-                <span>Debate AI</span>
-            </a>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="chat.html">Try It</a>
-                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <div class="hero-badge">
-                ⚡ Powered by Multi-Agent AI
-            </div>
-            <h1>
-                Smarter Answers Through<br>
-                <span class="gradient-text">AI Debate</span>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="title">
+                <span class="gradient-text">Room AI</span>
             </h1>
-            <p>
-                Experience the next generation of AI reasoning. Multiple AI models collaborate, 
-                challenge each other, and synthesize the best possible answer to your questions.
+            <p class="subtitle">Where AI Models Debate to Find the Truth</p>
+            <p class="description">
+                Experience the power of multi-agent AI debates. Watch as different AI models 
+                challenge each other's reasoning, catch logical errors, and synthesize the best possible answers.
             </p>
-            <button class="hero-cta" onclick="window.location.href='chat.html'"></button>
+            <a href="chat.html" class="cta-button">
                 <span>Start Debating</span>
-                <span>→</span>
-            </button>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-number">2+</div>
-                    <div class="stat-label">AI Models Debating</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">4</div>
-                    <div class="stat-label">Reasoning Phases</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Free to Use</div>
-                </div>
-            </div>
-        </div>
-    </section>
+                <span class="arrow">→</span>
+            </a>
+        </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="section-container">
-            <div class="section-header">
-                <div class="section-badge">Why Choose Us</div>
-                <h2>Powered by Multi-Agent Reasoning</h2>
-                <p>See how collaborative AI delivers superior answers through structured debate and synthesis</p>
+        <!-- Features -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Independent Analysis</h3>
+                <p>Multiple AI models solve problems independently before collaborating</p>
             </div>
-            
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🧠</div>
-                    <h3>Independent Analysis</h3>
-                    <p>Multiple AI models independently solve your problem, bringing diverse perspectives and approaches.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3>Cross-Examination</h3>
-                    <p>Models challenge each other's solutions, identifying weaknesses and strengthening arguments.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Critical Analysis</h3>
-                    <p>Deep critique phase ensures accuracy, catching errors and validating reasoning.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">✨</div>
-                    <h3>Smart Synthesis</h3>
-                    <p>Final answer combines the best insights from all models into one comprehensive solution.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Full Transparency</h3>
-                    <p>Watch the entire debate unfold. See how models think, disagree, and reach consensus.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Lightning Fast</h3>
-                    <p>Parallel processing ensures quick results without compromising on answer quality.</p>
-                </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Cross-Examination</h3>
+                <p>Models challenge each other's reasoning to catch logical flaws</p>
             </div>
-        </div>
-    </section>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Critical Analysis</h3>
+                <p>Deep critique ensures accuracy and validates every conclusion</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3>Best Answer</h3>
+                <p>Final synthesis combines strengths of all models</p>
+            </div>
+        </section>
 
-    <!-- App Section -->
-    <section id="app" class="app-section">
-        <div class="app-container">
-            <div class="app-header">
-                <h2>Try It Now</h2>
-                <p>Ask any question and watch AI models debate to find the best answer</p>
-            </div>
-            
-            <div class="query-type-badge" id="queryTypeBadge" style="display: none;">
-                💬 General Mode
-            </div>
-            
-            <textarea 
-                id="queryInput" 
-                placeholder="Ask anything... Try: 'Explain quantum computing' or 'Write a sorting algorithm in Python'"
-                rows="6"
-            ></textarea>
-            
-            <div class="example-prompts">
-                <h4>💡 Popular Questions</h4>
-                <div class="prompt-chips">
-                    <div class="prompt-chip" onclick="useExamplePrompt('Explain how blockchain technology works')">🔗 Blockchain</div>
-                    <div class="prompt-chip" onclick="useExamplePrompt('Write a binary search algorithm in Python')">💻 Binary Search</div>
-                    <div class="prompt-chip" onclick="useExamplePrompt('What are the key differences between React and Vue?')">⚛️ React vs Vue</div>
-                    <div class="prompt-chip" onclick="useExamplePrompt('Explain the theory of relativity simply')">⚡ Relativity</div>
-                    <div class="prompt-chip" onclick="useExamplePrompt('How do neural networks learn?')">🧠 Neural Networks</div>
-                </div>
-            </div>
-            
-            <button class="submit-btn" onclick="startDebate()">
-                <span>Start AI Debate</span>
-                <span>→</span>
-            </button>
-            <p style="text-align: center; color: var(--gray); font-size: 0.9rem; margin-top: 0.75rem;">
-                Press <kbd style="padding: 0.2rem 0.5rem; background: var(--light); border-radius: 4px;">Ctrl + Enter</kbd> to submit
-            </p>
-            
-            <!-- Loading State -->
-            <div id="loadingState" class="loading-state" style="display: none;">
-                <div class="spinner"></div>
-                <p>AI models are analyzing your question...</p>
-                <div class="progress-phases">
-                    <div class="phase-item active">
-                        <span class="phase-icon">🧠</span>
-                        <span class="phase-text">Independent Solutions</span>
-                    </div>
-                    <div class="phase-item">
-                        <span class="phase-icon">💬</span>
-                        <span class="phase-text">Cross-Examination</span>
-                    </div>
-                    <div class="phase-item">
-                        <span class="phase-icon">🔍</span>
-                        <span class="phase-text">Critical Analysis</span>
-                    </div>
-                    <div class="phase-item">
-                        <span class="phase-icon">✨</span>
-                        <span class="phase-text">Final Synthesis</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Results Section -->
-            <div id="resultsSection" class="results-section" style="display: none;">
-                <h3>💡 Synthesized Answer</h3>
-                <div id="finalAnswer" class="final-answer"></div>
-                
-                <h3>📝 Full Debate Transcript</h3>
-                <p style="color: var(--gray); margin-bottom: 1.5rem;">Expand each phase to see how the AI models reasoned through your question</p>
-                <div id="transcriptContent" class="transcript-box"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-logo">🤖 Debate AI</div>
-            <p>Advanced AI reasoning through multi-agent collaboration</p>
-            <div class="footer-links">
-                <a href="#">About</a>
-                <a href="#">Documentation</a>
-                <a href="#">API</a>
-                <a href="#">Terms</a>
-                <a href="#">Privacy</a>
-            </div>
-            <p style="font-size: 0.85rem; opacity: 0.7;">© 2025 Debate AI. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Room AI - Powered by Multi-Agent Debate Architecture</p>
+        </footer>
+    </div>
 </body>
 </html>
