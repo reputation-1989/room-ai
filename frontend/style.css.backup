@@ -1,33 +1,3 @@
-/* Light Mode (Default) */
-body:not(.dark-mode) {
-    background: #ffffff !important;
-}
-
-body:not(.dark-mode) .animated-bg {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
-}
-
-body:not(.dark-mode) .navbar {
-    background: rgba(255, 255, 255, 0.95) !important;
-}
-
-body:not(.dark-mode) .logo,
-body:not(.dark-mode) .hero h1,
-body:not(.dark-mode) .section-header h2 {
-    color: #0f172a !important;
-}
-
-body:not(.dark-mode) .hero p,
-body:not(.dark-mode) .section-header p {
-    color: #64748b !important;
-}
-
-body:not(.dark-mode) .stat-item,
-body:not(.dark-mode) .feature-card {
-    background: white !important;
-    color: #0f172a !important;
-}
-
 * {
     margin: 0;
     padding: 0;
