@@ -4,22 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room AI - Multi-Agent Debate</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
     <link rel="stylesheet" href="chat.css">
-    
-    <!-- Markdown, LaTeX, and Code Highlighting Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>💬 Chat History</h2>
@@ -27,40 +23,23 @@
         </div>
         <div class="sidebar-content">
             <button class="new-chat-btn" onclick="newChat()">
-                <span class="btn-icon">➕</span>
-                <span>New Chat</span>
+                <span class="btn-icon">➕</span><span>New Chat</span>
             </button>
-            <div class="chat-history" id="chatHistory">
-                <div style="padding: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
-                    No chat history yet
-                </div>
-            </div>
+            <div class="chat-history" id="chatHistory"></div>
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="container">
-        <!-- Header -->
         <header class="header">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo">
-                <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
-                    <span class="logo-text">Room AI</span>
-                </a>
-            </div>
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
-                <button class="theme-toggle" onclick="openSettingsModal()" aria-label="Settings" title="Settings (Ctrl+,)">
-                    ⚙️
-                </button>
-                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                    <span id="themeIcon">🌙</span>
-                </button>
+            <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit;"><span class="logo-text">Room AI</span></a></div>
+            <div style="display:flex;gap:0.75rem;">
+                <button class="theme-toggle" onclick="openSettingsModal()" title="Settings">⚙️</button>
+                <button class="theme-toggle" onclick="toggleTheme()"><span id="themeIcon">🌙</span></button>
             </div>
         </header>
 
-        <!-- Messages Container -->
         <div class="messages-container" id="messagesContainer">
-            <!-- Welcome Screen -->
             <div class="welcome-screen" id="welcomeScreen">
                 <div class="welcome-content">
                     <h1 class="welcome-title">Welcome to Room AI</h1>
@@ -70,57 +49,33 @@
                         <span class="pill">🔍 Cross-Examination</span>
                         <span class="pill">✨ Synthesized Answers</span>
                     </div>
-                    <div style="margin: 2rem 0; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-                        <button class="action-btn" onclick="showKeyboardShortcuts()" title="Ctrl+/">
-                            <span class="btn-icon">⌨️</span>
-                            <span class="btn-text">Shortcuts</span>
-                        </button>
-                        <button class="action-btn" onclick="openSearchModal()" title="Ctrl+K">
-                            <span class="btn-icon">🔍</span>
-                            <span class="btn-text">Search</span>
-                        </button>
-                        <button class="action-btn" onclick="openExportModal()" title="Ctrl+E">
-                            <span class="btn-icon">📥</span>
-                            <span class="btn-text">Export</span>
-                        </button>
+                    <div style="margin:2rem 0;display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+                        <button class="action-btn" onclick="showKeyboardShortcuts()"><span class="btn-icon">⌨️</span><span class="btn-text">Shortcuts</span></button>
+                        <button class="action-btn" onclick="openSearchModal()"><span class="btn-icon">🔍</span><span class="btn-text">Search</span></button>
+                        <button class="action-btn" onclick="shareConversation()"><span class="btn-icon">🔗</span><span class="btn-text">Share</span></button>
+                        <button class="action-btn" onclick="showStats()"><span class="btn-icon">📊</span><span class="btn-text">Stats</span></button>
+                        <button class="action-btn" onclick="openExportModal()"><span class="btn-icon">📥</span><span class="btn-text">Export</span></button>
                     </div>
                     <div class="example-section">
                         <h3 class="example-title">Try asking:</h3>
-                        <div class="example-grid">
-                            <!-- Examples will be inserted here by JS -->
-                        </div>
+                        <div class="example-grid"></div>
                     </div>
                 </div>
             </div>
-
-            <!-- Messages -->
             <div class="messages" id="messages"></div>
         </div>
 
-        <!-- Input Area -->
         <div class="input-container">
             <div class="input-wrapper">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="Ask me anything... (Ctrl+Enter to send)" 
-                    rows="1"
-                    onkeypress="handleKeyPress(event)"
-                    oninput="autoResize(this)"
-                ></textarea>
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
-                    <span class="send-icon">➤</span>
-                </button>
+                <textarea id="messageInput" placeholder="Ask me anything..." rows="1" onkeypress="handleKeyPress(event)" oninput="autoResize(this)"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled><span class="send-icon">➤</span></button>
             </div>
-            <div class="input-footer">
-                <span class="input-hint">Press Ctrl+/ for shortcuts • Ctrl+K to search • Ctrl+E to export</span>
-            </div>
+            <div class="input-footer"><span class="input-hint">Press Ctrl+/ for shortcuts • Ctrl+K to search • Ctrl+E to export</span></div>
         </div>
     </div>
 
-    <!-- Floating Action Button (Mobile) -->
-    <button class="fab" onclick="showKeyboardShortcuts()" title="Quick Actions">
-        ⚡
-    </button>
+    <button class="fab" onclick="showKeyboardShortcuts()">⚡</button>
+    <div class="security-badge" onclick="showSecurityInfo()">🔒 Secured</div>
 
     <script src="chat.js"></script>
 </body>
