@@ -11,21 +11,13 @@ app.get('/health', (req, res) => res.json({status: 'alive'}));
 
 app.post("/api/debate", async (req, res) => {
   const { prompt, model = "nous-hermes3:free" } = req.body;
-  
-  const agents = [
-    { name: "Alex", role: "optimist", model: "deepseek-r1:free" },
-    { name: "Bella", role: "critic", model: "qwen2.5-coder:free" },
-    { name: "Charlie", role: "realist", model: "gemma-2-27b:free" },
-    { name: "Dana", role: "innovator", model: "mixtral:free" }
-  ];
-  
-  let debate = `USER: ${prompt}\n\n`;
-  
-  for (let agent of agents) {
-    const response = await openrouter.chat.completions.create({
-      model: agent.model,
-      messages: [{role: "user", content: `${agent.role.toUpperCase()}: ${prompt}`}] 
-    });
+  console.log("🔥 MODEL:", model);
+  const response = await openrouter.chat.completions.create({
+    model: model,
+    messages: [{ role: "user", content: prompt }]
+  });
+  res.json({ response: response.choices[0].message.content, model_used: model });
+});
     debate += `${agent.name} (${agent.role}): ${response.choices[0].message.content}\n\n`;
   }
   
@@ -39,7 +31,6 @@ app.post("/api/debate", async (req, res) => {
 
     res.json({
       finalAnswer: response.data.choices[0].message.content,
-      models: { modelA: 'Olmo3.1-Free', modelB: 'Olmo3.1-Free' },
       debateSteps: [{stage: 'AI Complete', status: 'success'}]
     });
   } catch (error) {
