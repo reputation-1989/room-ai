@@ -94,3 +94,16 @@ document.getElementById('modelSelect').addEventListener('change', function() {
 </script>
 </body>
 </html>
+<div id="model-selector" style="position:fixed;top:10px;right:10px;z-index:1000;background:#333;padding:10px;border-radius:8px;">
+  <select id="modelSelect" style="background:#444;color:white;border:1px solid #666;padding:5px;border-radius:4px;">
+    <option value="nous-hermes3:free">Hermes 3 ⭐</option>
+    <option value="llama3.1:free">Llama 3.1</option>
+    <option value="mixtral:free">Mixtral 8x7B</option>
+    <option value="qwen2.5:free">Qwen 2.5</option>
+  </select>
+</div>
+<script>
+document.getElementById("modelSelect").addEventListener("change", function() {
+  console.log("Model:", this.value);
+});
+</script>
