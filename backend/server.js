@@ -13,9 +13,9 @@ app.post('/api/debate', async (req, res) => {
   try {
     const { prompt } = req.body;
     
-    // VERIFIED WORKING FREE MODELS
-    const llamaResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'google/gemma-2-9b-it:free',
+    // SINGLE WORKING MODEL - no debate complexity
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: 'nousresearch/hermes-3-llama-3.1-405b:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -23,23 +23,11 @@ app.post('/api/debate', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
-
-    const mistralResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'microsoft/phi-3-mini-128k-instruct:free',
-      messages: [{role: 'user', content: prompt}]
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const finalAnswer = `**Gemma2:** ${llamaResponse.data.choices[0].message.content}\n\n**Phi3:** ${mistralResponse.data.choices[0].message.content}`;
 
     res.json({
-      finalAnswer,
-      models: { modelA: 'Gemma2', modelB: 'Phi3' },
-      debateSteps: [{stage: 'AI Debate Complete', status: 'success'}]
+      finalAnswer: response.data.choices[0].message.content,
+      models: { modelA: 'Hermes3-Free', modelB: 'Hermes3-Free' },
+      debateSteps: [{stage: 'AI Complete', status: 'success'}]
     });
   } catch (error) {
     console.error('OpenRouter Error:', error.response?.data || error.message);
