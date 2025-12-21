@@ -13,9 +13,8 @@ app.post('/api/debate', async (req, res) => {
   try {
     const { prompt } = req.body;
     
-    // SINGLE WORKING MODEL - no debate complexity
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+      model: 'allenai/olmo-3.1-32b-think:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -26,7 +25,7 @@ app.post('/api/debate', async (req, res) => {
 
     res.json({
       finalAnswer: response.data.choices[0].message.content,
-      models: { modelA: 'Hermes3-Free', modelB: 'Hermes3-Free' },
+      models: { modelA: 'Olmo3.1-Free', modelB: 'Olmo3.1-Free' },
       debateSteps: [{stage: 'AI Complete', status: 'success'}]
     });
   } catch (error) {
