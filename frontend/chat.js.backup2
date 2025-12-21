@@ -156,7 +156,6 @@ function useExample(text) {
 
 // REAL API CALL WITH LIVE DEBATE VISUALIZATION
 async function sendMessage() {
-    document.getElementById("welcomeScreen").style.display = "none";
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     
