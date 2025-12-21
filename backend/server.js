@@ -13,9 +13,9 @@ app.post('/api/debate', async (req, res) => {
   try {
     const { prompt } = req.body;
     
-    // Llama3 via OpenRouter (correct free model)
+    // VERIFIED WORKING FREE MODELS
     const llamaResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'meta-llama/llama-3-8b-instruct:free',
+      model: 'google/gemma-2-9b-it:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -24,9 +24,8 @@ app.post('/api/debate', async (req, res) => {
       }
     });
 
-    // Mistral via OpenRouter  
     const mistralResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'mistralai/mistral-7b-instruct:free',
+      model: 'microsoft/phi-3-mini-128k-instruct:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -35,15 +34,12 @@ app.post('/api/debate', async (req, res) => {
       }
     });
 
-    const finalAnswer = `**Llama3:** ${llamaResponse.data.choices[0].message.content}\n\n**Mistral:** ${mistralResponse.data.choices[0].message.content}`;
+    const finalAnswer = `**Gemma2:** ${llamaResponse.data.choices[0].message.content}\n\n**Phi3:** ${mistralResponse.data.choices[0].message.content}`;
 
     res.json({
       finalAnswer,
-      models: { modelA: 'Llama3', modelB: 'Mistral' },
-      debateSteps: [
-        {stage: 'Llama3 Complete', status: 'success'},
-        {stage: 'Mistral Complete', status: 'success'}
-      ]
+      models: { modelA: 'Gemma2', modelB: 'Phi3' },
+      debateSteps: [{stage: 'AI Debate Complete', status: 'success'}]
     });
   } catch (error) {
     console.error('OpenRouter Error:', error.response?.data || error.message);
