@@ -11,7 +11,7 @@ app.get('/health', (req, res) => res.json({status: 'alive'}));
 
 app.post('/api/debate', async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, model = 'nous-hermes3:free' } = req.body;
     
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
       model: 'allenai/olmo-3.1-32b-think:free',
