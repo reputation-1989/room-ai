@@ -1,4 +1,4 @@
-const API_URL = 'https://improved-parakeet-q7654wjw9vvpf49-3000.app.github.dev/api/debate';
+const API_URL = 'https://room-ai.onrender.com/api/debate';
 const USE_MOCK = false; // REAL BACKEND NOW!
 
 let chatHistory = [];
@@ -138,6 +138,7 @@ function handleKeyPress(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
+    document.getElementById("welcomeScreen").style.display = "none";
     }
 }
 
@@ -156,6 +157,7 @@ function useExample(text) {
 
 // REAL API CALL WITH LIVE DEBATE VISUALIZATION
 async function sendMessage() {
+    document.getElementById("welcomeScreen").style.display = "none";
     document.getElementById("welcomeScreen").style.display = "none";
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
@@ -441,3 +443,16 @@ function loadChat(index) {
 }
 
 console.log('✅ Room AI JavaScript Loaded!');
+function scrollToBottom() { document.getElementById("messagesContainer").scrollTop = document.getElementById("messagesContainer").scrollHeight; }
+
+// Enable/disable send button based on input
+document.getElementById('messageInput').addEventListener('input', function() {
+    const sendBtn = document.getElementById('sendBtn');
+    if (this.value.trim()) {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+    } else {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.5';
+    }
+});
