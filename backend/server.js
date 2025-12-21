@@ -13,9 +13,9 @@ app.post('/api/debate', async (req, res) => {
   try {
     const { prompt } = req.body;
     
-    // Llama3 via OpenRouter
+    // Llama3 via OpenRouter (correct free model)
     const llamaResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'meta-llama/llama-3.1-70b-instruct:free',
+      model: 'meta-llama/llama-3-8b-instruct:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -26,7 +26,7 @@ app.post('/api/debate', async (req, res) => {
 
     // Mistral via OpenRouter  
     const mistralResponse = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'mistralai/mistral-nemo',
+      model: 'mistralai/mistral-7b-instruct:free',
       messages: [{role: 'user', content: prompt}]
     }, {
       headers: {
@@ -47,7 +47,7 @@ app.post('/api/debate', async (req, res) => {
     });
   } catch (error) {
     console.error('OpenRouter Error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'AI service error' });
+    res.status(500).json({ error: 'AI service error', details: error.response?.data });
   }
 });
 
