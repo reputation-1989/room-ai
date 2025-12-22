@@ -26,3 +26,8 @@ npm-debug.log*
 
 # Cache
 .cache/
+
+# API Keys - NEVER COMMIT
+.env
+backend/.env
+**/.env
