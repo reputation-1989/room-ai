@@ -40,6 +40,8 @@ logs/
 .pnpm-debug.log
 pnpm-lock.yaml
 lerna-debug.log
+cache.json
+*.cache
 
 # API Keys & Secrets
 **/*.key
@@ -52,9 +54,14 @@ secrets/
 *.db
 *.sqlite
 *.backup
+*.zip
 .database/
 
 # Misc
 .turbo/
 coverage/
 .nyc_output/
+
+# Test files (remove empty test files)
+0
+1
