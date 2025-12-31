@@ -1,243 +1,221 @@
-import express from 'express';
-import OpenAI from 'openai';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import { executeAllCodeBlocks, generateTestCases } from './codeExecutor.js';
-import { classifyQuery } from './queryClassifier.js';
+import React, { useState, useEffect, useRef } from 'react';
+import { create } from 'zustand';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { 
+  Zap, Plus, Brain, Image as ImageIcon, Loader2, Wifi, ShieldAlert, 
+  Sparkles, Cpu, Copy, ExternalLink, Settings2, Fingerprint, Activity, 
+  Radio, Moon, Sun, Trash2, GraduationCap, Code, Search, ChevronDown, Layout, Send, Terminal, Check
+} from 'lucide-react';
 
-dotenv.config();
-
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-const openrouter = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
-const MODELS = {
-  modelA: 'meta-llama/llama-3.3-70b-instruct:free',
-  modelB: 'mistralai/mistral-7b-instruct:free'
+const CORE_CONFIG = {
+  apiKey: "AIzaSyBWuV0MeqZNdwCtGD385N3HjIj_3ni8Uic",
+  authDomain: "room-ai-5f04a.firebaseapp.com",
+  projectId: "room-ai-5f04a",
+  storageBucket: "room-ai-5f04a.firebasestorage.app",
+  messagingSenderId: "9408101224",
+  appId: "1:9408101224:web:2cefe9a2e95dd205f674dd"
 };
 
-class DebateEngine {
-  constructor(modelA, modelB) {
-    this.modelA = modelA;
-    this.modelB = modelB;
-    this.transcript = [];
-  }
+const FREE_MODELS = [
+  { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B", provider: "Meta" },
+  { id: "google/gemma-2-9b-it:free", name: "Gemma 2 9B", provider: "Google" },
+  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B", provider: "Mistral" },
+  { id: "microsoft/phi-3-mini-128k-instruct:free", name: "Phi 3 Mini", provider: "Microsoft" },
+  { id: "qwen/qwen-2-7b-instruct:free", name: "Qwen 2 7B", provider: "Alibaba" },
+  { id: "openchat/openchat-7b:free", name: "OpenChat 7B", provider: "OpenChat" }
+];
 
-  async callModel(modelName, prompt) {
+const MODES = [
+  { id: 'general', label: 'General', icon: Layout },
+  { id: 'academic', label: 'Academic', icon: GraduationCap },
+  { id: 'research', label: 'Research', icon: Search },
+  { id: 'coding', label: 'Coding', icon: Code }
+];
+
+const useStore = create((set) => ({
+  conversations: [], activeId: null, isLoading: false, user: null, 
+  preset: 'general', theme: 'dark', selectedModels: [FREE_MODELS[0].id],
+  setUser: (user) => set({ user }),
+  setConversations: (convos) => set({ conversations: convos }),
+  setActiveId: (id) => set({ activeId: id }),
+  setLoading: (l) => set({ isLoading: l }),
+  setPreset: (p) => set({ preset: p }),
+  setTheme: (t) => set({ theme: t }),
+  toggleModel: (id) => set((state) => ({
+    selectedModels: state.selectedModels.includes(id) 
+      ? (state.selectedModels.length > 1 ? state.selectedModels.filter(m => m !== id) : state.selectedModels)
+      : [...state.selectedModels, id].slice(0, 2) // Limit to 2 for debate flagship feature
+  }))
+}));
+
+export default function App() {
+  const s = useStore();
+  const [input, setInput] = useState("");
+  const [showTrace, setShowTrace] = useState(null);
+  const scrollRef = useRef(null);
+  const dbRef = useRef(null);
+
+  useEffect(() => {
     try {
-      const completion = await openrouter.chat.completions.create({
-        model: modelName,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1024
-      });
-      return completion.choices[0]?.message?.content || '';
-    } catch (error) {
-      console.error(`Error calling ${modelName}:`, error.message);
-      throw error;
-    }
-  }
+      const app = !getApps().length ? initializeApp(CORE_CONFIG) : getApp();
+      dbRef.current = getFirestore(app);
+      const auth = getAuth(app);
+      onAuthStateChanged(auth, (u) => s.setUser(u));
+      signInAnonymously(auth);
+    } catch (e) { console.error(e); }
+  }, []);
 
-  async runDebate(userPrompt, classification) {
-    this.transcript = [];
-    const startTime = Date.now();
-    console.log('🔥 Debate started...');
-
-    console.log('📝 Phase 1: Independent reasoning...');
-    const promptText = `You are an expert problem solver. Solve this:\n\n${userPrompt}\n\nProvide a clear, well-reasoned solution.`;
-    const [responseA, responseB] = await Promise.all([
-      this.callModel(this.modelA, promptText),
-      this.callModel(this.modelB, promptText)
-    ]);
-
-    this.transcript.push({
-      phase: 'Independent Solutions',
-      modelA: { name: this.modelA, response: responseA },
-      modelB: { name: this.modelB, response: responseB }
+  useEffect(() => {
+    if (!s.user || !dbRef.current) return;
+    const col = collection(dbRef.current, 'artifacts', 'room-ai-production', 'users', s.user.uid, 'conversations');
+    return onSnapshot(col, (sn) => {
+      const list = sn.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+      s.setConversations(list);
+      if (!s.activeId && list.length > 0) s.setActiveId(list[0].id);
     });
+  }, [s.user?.uid]);
 
-    let updatedResponseA = responseA;
-    let updatedResponseB = responseB;
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [s.conversations, s.isLoading]);
 
-    if (classification.enableCodeExecution) {
-      console.log('🔍 Checking for code blocks...');
-      const codeResultsA = await executeAllCodeBlocks(responseA);
-      const codeResultsB = await executeAllCodeBlocks(responseB);
-      
-      if (codeResultsA || codeResultsB) {
-        console.log('⚡ Executing code...');
-        console.log('🧪 Generating test cases...');
-        
-        this.transcript.push({
-          phase: 'Code Execution & Testing',
-          modelA: codeResultsA ? { executed: true, results: codeResultsA } : { executed: false },
-          modelB: codeResultsB ? { executed: true, results: codeResultsB } : { executed: false }
-        });
-        
-        let executionSummary = '\n\n--- CODE EXECUTION RESULTS ---\n';
-        
-        if (codeResultsA) {
-          executionSummary += '\nYour code (Model A) execution:\n';
-          codeResultsA.forEach((result, idx) => {
-            executionSummary += `Code block ${idx + 1} (${result.language}):\n`;
-            executionSummary += `Output: ${result.output}\n`;
-            executionSummary += `Exit code: ${result.exitCode}\n`;
-            executionSummary += result.exitCode !== 0 ? '⚠️ RUNTIME ERROR\n' : '✅ Success\n';
-          });
-        }
-        
-        if (codeResultsB) {
-          executionSummary += '\nOther model code (Model B) execution:\n';
-          codeResultsB.forEach((result, idx) => {
-            executionSummary += `Code block ${idx + 1} (${result.language}):\n`;
-            executionSummary += `Output: ${result.output}\n`;
-            executionSummary += `Exit code: ${result.exitCode}\n`;
-            executionSummary += result.exitCode !== 0 ? '⚠️ RUNTIME ERROR\n' : '✅ Success\n';
-          });
-        }
-        
-        console.log('🔥 Initiating harsh debugging mode...');
-        
-        const harshPrompt = `Code execution results:\n${executionSummary}\n\nBe HARSH. Generate 3 edge case tests to break the other model code. Consider: empty inputs, large numbers, negatives, special chars, boundaries. Format: TEST: <input> | EXPECTED: <result>\n\nExplain why challenging.`;
-        
-        const harshDebugA = await this.callModel(this.modelA, harshPrompt);
-        const harshDebugB = await this.callModel(this.modelB, harshPrompt);
-        
-        this.transcript.push({
-          phase: 'Harsh Debugging - Test Case Generation',
-          modelA: { testCases: harshDebugA, strategy: 'Adversarial test cases for Model B' },
-          modelB: { testCases: harshDebugB, strategy: 'Adversarial test cases for Model A' }
-        });
-        
-        console.log('💥 Test cases generated!');
-        
-        updatedResponseA = `${responseA}\n\n${executionSummary}\n\nTest cases from other model:\n${harshDebugB}`;
-        updatedResponseB = `${responseB}\n\n${executionSummary}\n\nTest cases from other model:\n${harshDebugA}`;
-      }
-    }
-
-    console.log('🔍 Phase 2: Cross-examination...');
-    const questionFromA = await this.callModel(this.modelA, `Review this:\n\n${updatedResponseB}\n\nAsk ONE critical question.`);
-    const defenseB = await this.callModel(this.modelB, `You said:\n${updatedResponseB}\n\nChallenge: ${questionFromA}\n\nDefend.`);
-    const questionFromB = await this.callModel(this.modelB, `Review this:\n\n${updatedResponseA}\n\nAsk ONE critical question.`);
-    const defenseA = await this.callModel(this.modelA, `You said:\n${updatedResponseA}\n\nChallenge: ${questionFromB}\n\nDefend.`);
-
-    this.transcript.push({
-      phase: 'Cross-Examination',
-      modelA: { question: questionFromB, defense: defenseA },
-      modelB: { question: questionFromA, defense: defenseB }
-    });
-
-    console.log('⚔️ Phase 3: Mutual critique...');
-    const [critiqueA, critiqueB] = await Promise.all([
-      this.callModel(this.modelA, `Analyze this for flaws:\n\n${updatedResponseB}\n\nList 2-3 weaknesses.`),
-      this.callModel(this.modelB, `Analyze this for flaws:\n\n${updatedResponseA}\n\nList 2-3 weaknesses.`)
-    ]);
-
-    this.transcript.push({
-      phase: 'Critique',
-      modelA: { critique: critiqueA, target: this.modelB },
-      modelB: { critique: critiqueB, target: this.modelA }
-    });
-
-    console.log('🎯 Phase 4: Generating final answer...');
-    const synthesisPrompt = `Two AIs debated: "${userPrompt}"\n\nA: ${updatedResponseA}\n\nB: ${updatedResponseB}\n\nCritiques: A said: ${critiqueA}\nB said: ${critiqueB}\n\nSynthesize best answer.`;
-    const synthesis = await this.callModel(this.modelA, synthesisPrompt);
-
-    this.transcript.push({
-      phase: 'Final Synthesis',
-      synthesis
-    });
-
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`✅ Debate completed in ${duration}s`);
-
-    return {
-      success: true,
-      userPrompt,
-      models: { modelA: this.modelA, modelB: this.modelB },
-      transcript: this.transcript,
-      finalAnswer: synthesis,
-      metadata: {
-        duration: `${duration}s`,
-        timestamp: new Date().toISOString(),
-        provider: 'OpenRouter (100% FREE)'
-      }
+  const handleSend = async () => {
+    if (!input.trim() || s.isLoading || !s.activeId) return;
+    const p = input; setInput("");
+    const convo = s.conversations.find(c => c.id === s.activeId);
+    
+    const addMsg = async (role, content, meta = {}) => {
+      const msgs = [...(convo.messages || []), { role, content, metadata: meta, timestamp: Date.now() }];
+      await updateDoc(doc(dbRef.current, 'artifacts', 'room-ai-production', 'users', s.user.uid, 'conversations', s.activeId), { messages: msgs });
     };
-  }
-}
 
-app.get('/', (req, res) => {
-  res.json({
-    project: '🏛️ room.ai',
-    description: 'Multi-LLM Debate & Collaboration Engine',
-    status: 'online',
-    version: '3.0.0',
-    provider: 'OpenRouter (100% FREE)',
-    features: ['Smart Query Detection', 'Code Execution', 'Harsh Debugging', 'Universal Adaptation'],
-    models: MODELS,
-    endpoints: {
-      debate: 'POST /api/debate',
-      health: 'GET /health',
-      models: 'GET /models'
-    }
-  });
-});
-
-app.post('/api/debate', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({
-        success: false,
-        error: 'Prompt is required',
-        example: { prompt: 'Explain quantum computing' }
+    s.setLoading(true);
+    await addMsg("user", p);
+    
+    try {
+      const res = await fetch("/api/debate", { 
+        method: "POST", headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ prompt: p, selectedModels: s.selectedModels, history: convo.messages, preset: s.preset }) 
       });
+      const data = await res.json();
+      await addMsg("assistant", data.finalAnswer, { sources: data.metadata?.sources, transcript: data.transcript });
+    } catch (e) { 
+      await addMsg("assistant", "Neural Link Timeout."); 
     }
+    s.setLoading(false);
+  };
 
-    const classification = classifyQuery(prompt);
-    console.log(`\n🎯 Query Type: ${classification.type.toUpperCase()}`);
-    console.log(`📋 Mode: ${classification.mode}`);
-    console.log(`🎲 Strategy: ${classification.strategy}\n`);
+  return (
+    <div className={`flex h-screen transition-all duration-700 ${s.theme === 'dark' ? 'bg-[#030303] text-zinc-100' : 'bg-white text-zinc-900'}`}>
+      {/* Dynamic Sidebar */}
+      <aside className={`w-72 border-r flex flex-col transition-all duration-500 ${s.theme === 'dark' ? 'border-white/5 bg-[#080808]' : 'border-zinc-200 bg-zinc-50'}`}>
+        <div className="p-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20"><Zap size={22} className="text-white fill-current" /></div>
+            <span className="font-black text-xl tracking-tighter">room.ai</span>
+          </div>
+          <button onClick={() => s.setTheme(s.theme === 'dark' ? 'light' : 'dark')} className="p-2.5 rounded-xl hover:bg-zinc-500/10 transition-all">
+            {s.theme === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}
+          </button>
+        </div>
 
-    const engine = new DebateEngine(MODELS.modelA, MODELS.modelB);
-    const result = await engine.runDebate(prompt, classification);
+        <button onClick={async () => {
+          const ref = await addDoc(collection(dbRef.current, 'artifacts', 'room-ai-production', 'users', s.user.uid, 'conversations'), { 
+            title: 'New Investigation', createdAt: Date.now(), messages: [], selectedModels: s.selectedModels 
+          });
+          s.setActiveId(ref.id);
+        }} className="mx-6 p-4 bg-blue-600 rounded-2xl text-[11px] font-black uppercase text-white shadow-xl shadow-blue-600/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mb-8">
+          <Plus size={18} /> New Investigation
+        </button>
 
-    res.json({ ...result, classification });
-  } catch (error) {
-    console.error('Debate error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+        <div className="flex-1 overflow-y-auto px-4 space-y-1 no-scrollbar">
+          {s.conversations.map(c => (
+            <div key={c.id} className="group relative">
+              <button onClick={() => s.setActiveId(c.id)} className={`w-full p-4 rounded-2xl text-[13px] text-left truncate transition-all ${c.id === s.activeId ? (s.theme === 'dark' ? 'bg-white/5 text-blue-400 border border-white/5' : 'bg-white text-blue-600 shadow-sm border border-zinc-200') : 'text-zinc-500 hover:bg-zinc-500/5'}`}>
+                {c.title || 'Untitled Session'}
+              </button>
+              <button onClick={async (e) => { e.stopPropagation(); await deleteDoc(doc(dbRef.current, 'artifacts', 'room-ai-production', 'users', s.user.uid, 'conversations', c.id)) }} className="absolute right-3 top-3.5 opacity-0 group-hover:opacity-100 p-2 text-zinc-600 hover:text-red-500 transition-all"><Trash2 size={14}/></button>
+            </div>
+          ))}
+        </div>
 
-app.get('/models', (req, res) => {
-  res.json({
-    available: MODELS,
-    provider: 'OpenRouter',
-    cost: '100% FREE',
-    note: 'Smart query detection with code execution'
-  });
-});
+        <div className="p-8 border-t border-white/5">
+          <div className="flex items-center gap-3">
+             <Activity size={16} className="text-blue-500 animate-pulse" />
+             <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none">Neural Core 3.0</span>
+          </div>
+        </div>
+      </aside>
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
-});
+      <main className="flex-1 flex flex-col relative overflow-hidden">
+        <header className={`h-24 border-b flex items-center px-10 justify-between backdrop-blur-3xl z-20 ${s.theme === 'dark' ? 'border-white/5 bg-black/40' : 'border-zinc-200 bg-white/80'}`}>
+          <div className="flex items-center gap-10">
+            <div className={`flex gap-1 p-1.5 rounded-2xl border ${s.theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-zinc-100 border-zinc-200'}`}>
+              {MODES.map(m => {
+                const Icon = m.icon;
+                return (
+                  <button key={m.id} onClick={() => s.setPreset(m.id)} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${s.preset === m.id ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'text-zinc-500 hover:text-zinc-400'}`}>
+                    <Icon size={14}/> {m.label}
+                  </button>
+                )
+              })}
+            </div>
+            
+            <div className="relative group">
+              <button className={`flex items-center gap-3 text-[11px] font-black uppercase px-6 py-3 rounded-xl border transition-all ${s.theme === 'dark' ? 'border-white/10 hover:border-blue-500' : 'border-zinc-200 hover:border-blue-600'}`}>
+                <ShieldAlert size={16} className="text-blue-500" /> Council Members ({s.selectedModels.length}) <ChevronDown size={14}/>
+              </button>
+              <div className="absolute top-full left-0 mt-3 w-80 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none group-hover:pointer-events-auto transition-all p-3 z-50">
+                <p className="text-[9px] font-black uppercase text-zinc-600 px-3 pb-3 tracking-widest">Select up to 2 specialists</p>
+                {FREE_MODELS.map(m => (
+                  <button key={m.id} onClick={() => s.toggleModel(m.id)} className={`w-full text-left p-3.5 rounded-xl transition-all mb-1 flex items-center justify-between ${s.selectedModels.includes(m.id) ? 'bg-blue-600/20 border border-blue-600/30' : 'hover:bg-white/5'}`}>
+                    <div>
+                      <div className={`font-bold text-xs ${s.selectedModels.includes(m.id) ? 'text-blue-400' : 'text-white'}`}>{m.name}</div>
+                      <div className="text-[9px] text-zinc-500 font-mono">{m.provider}</div>
+                    </div>
+                    {s.selectedModels.includes(m.id) && <Check size={16} className="text-blue-500" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-zinc-600"><Wifi size={16} className="text-blue-500"/> <span className="text-[10px] font-mono tracking-widest">ENCRYPTED_STREAM</span></div>
+        </header>
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n🚀 room.ai v3.0 running on port ${PORT}`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-  console.log(`⚡ Powered by OpenRouter (100% FREE)`);
-  console.log(`🤖 Models: Llama 3.3 (70B) vs Mistral 7B`);
-  console.log(`🧠 Smart Query Detection: ENABLED`);
-  console.log(`🌐 Press Ctrl+C to stop\n`);
-});
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-12 space-y-16 no-scrollbar scroll-smooth">
+          {s.conversations.find(c => c.id === s.activeId)?.messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-8 duration-700`}>
+              <div className={`max-w-[75%] ${m.role === 'user' ? 'bg-blue-600 p-8 rounded-[3rem] shadow-2xl text-white font-medium text-lg' : 'space-y-8 w-full'}`}>
+                {m.role === 'assistant' ? (
+                  <div className="space-y-8">
+                    <div className="text-[20px] leading-[1.85] font-light antialiased text-zinc-200">{m.content}</div>
+                    <div className="flex flex-wrap gap-2 pt-8 border-t border-white/5">
+                       {m.metadata?.sources?.map((src, idx) => (
+                         <a key={idx} href={src.url} target="_blank" className="px-4 py-2 bg-zinc-500/10 rounded-full text-[10px] font-bold text-zinc-500 hover:text-blue-500 border border-white/5 transition-all flex items-center gap-2"><ExternalLink size={12}/> {src.title.slice(0, 25)}...</a>
+                       ))}
+                       {m.metadata?.transcript && <button onClick={() => setShowTrace(m)} className="ml-auto p-3.5 rounded-2xl bg-zinc-500/5 text-zinc-500 hover:text-blue-500 transition-all border border-white/5"><Terminal size={22}/></button>}
+                    </div>
+                  </div>
+                ) : m.content}
+              </div>
+            </div>
+          ))}
+
+          {s.isLoading && (
+            <div className="w-full max-w-2xl mx-auto p-12 rounded-[4rem] bg-zinc-500/5 border border-white/5 backdrop-blur-3xl space-y-10 animate-pulse shadow-2xl">
+              <div className="flex items-center gap-8">
+                <div className="w-20 h-20 bg-blue-600/10 rounded-[2rem] flex items-center justify-center border border-blue-500/20"><Radio className="text-blue-500" size={36} /></div>
+                <div>
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-600 mb-2">Council Deliberation</h4>
+                  <p className="text-3xl font-bold tracking-tighter text-white">Synthesizing consensus...</p>
+                </div>
+              </div>
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 shadow-[0_0_25px_rgba(37,99,235,0.6)] transition-all duration-[5s]" style={{ width: '85%' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-12 pb-16 bg-gradient-to-t from-black via-black/50 to-transparent">
+          <div className="max-w-5xl mx-auto flex items-end
