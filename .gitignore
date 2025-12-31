@@ -1,7 +1,60 @@
-node_modules/
+# Environment Variables - NEVER COMMIT
 .env
+.env.local
+.env.production
+.env.*.local
+.env.secret
+
+# Node Dependencies
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build Artifacts
 dist/
 build/
+.next/
+out/
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs & Cache
 *.log
-frontend/node_modules/
+logs/
+.cache/
+.pnpm-debug.log
+pnpm-lock.yaml
+lerna-debug.log
+
+# API Keys & Secrets
+**/*.key
+**/*.pem
+**/*secret*
+**/*token*
+secrets/
+
+# Database & Backups
+*.db
+*.sqlite
+*.backup
+.database/
+
+# Misc
+.turbo/
+coverage/
+.nyc_output/
